@@ -42,7 +42,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera=(glm::vec3(0.0f,0.0f,16.0f));
+Camera camera=(glm::vec3(0.0f,0.0f,55.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -284,6 +284,10 @@ int main() {
     leptir.SetShaderTextureNamePrefix("material.");
 
 
+    Model cvet(FileSystem::getPath("resources/objects/cvet/cvet.obj"));
+    cvet.SetShaderTextureNamePrefix("material.");
+
+
     // Model ourModel(FileSystem::getPath("resources/objects/cat/12221_Cat_v1_l3.obj"));
     //ourModel.SetShaderTextureNamePrefix("material.");
 
@@ -306,7 +310,7 @@ int main() {
     modelMatrices = new glm::mat4[amount];
     srand(static_cast<unsigned int>(glfwGetTime())); // initialize random seed
     float radius = 50.0;
-    float offset = 2.5f;
+    float offset = 1.5f;
     for (unsigned int i = 0; i < amount; i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
@@ -380,6 +384,13 @@ int main() {
 
 
 
+        // draw flower
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -20.0f, 15.0f));
+        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
+        shader.setMat4("model", model);
+        cvet.Draw(shader);
 
 
 
