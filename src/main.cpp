@@ -169,6 +169,8 @@ int main() {
 
 
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
+    Shader shaderBlending("resources/shaders/blending.vs", "resources/shaders/blending.fs");
+
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
   //  stbi_set_flip_vertically_on_load(true);
 /*
@@ -247,6 +249,19 @@ int main() {
 
 
 
+    float planeVertices[] = {
+            // positions          // texture Coords
+            5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+            -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+            -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+            5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+            -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+            5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+    };
+
+
+
     //skybox - arrays & buffers
     unsigned int skyboxVAO, skyboxVBO;
     glGenVertexArrays(1, &skyboxVAO);
@@ -257,6 +272,17 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // plane VAO
+    unsigned int planeVAO, planeVBO;
+    glGenVertexArrays(1, &planeVAO);
+    glGenBuffers(1, &planeVBO);
+    glBindVertexArray(planeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
 
     vector<std::string> faces= {
@@ -270,10 +296,8 @@ int main() {
 
     unsigned int cubemapTexture = loadCubemap(faces);
 
-    // ourShader.use();
-    //ourShader.setInt("skybox", 0);
-    skyboxShader.use();
-    skyboxShader.setInt("skybox", 0);
+
+    unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/trava.png").c_str());
 
 
     //
@@ -335,6 +359,18 @@ int main() {
         // 4. now add to list of matrices
         modelMatrices[i] = model;
     }
+
+    // ourShader.use();
+    //ourShader.setInt("skybox", 0);
+
+    // shader configuration
+    // --------------------
+
+    skyboxShader.use();
+    skyboxShader.setInt("skybox", 0);
+
+    shaderBlending.use();
+    shaderBlending.setInt("texture1", 0);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -400,6 +436,16 @@ int main() {
             shader.setMat4("model", modelMatrices[i]);
             leptir.Draw(shader);
         }
+        // floor
+        glBindVertexArray(planeVAO);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 15.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(100.0f, 60.0f, 100.0f));
+        //model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
+        shader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
         // render the loaded model
        // glm::mat4 model = glm::mat4(1.0f);
         //model = glm::translate(model,
@@ -451,6 +497,7 @@ int main() {
     */// glfw: terminate, clearing all previously allocated GLFW resources.
     glDeleteVertexArrays(1,&skyboxVAO);
     glDeleteBuffers(1, &skyboxVBO);
+    glDeleteBuffers(1, &planeVBO);
 
     // ------------------------------------------------------------------
     glfwTerminate();
@@ -562,7 +609,7 @@ unsigned int loadTexture(char const * path){
     int width, height, nrComponents;
     unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data){
-        GLenum format = GL_RED;
+        GLenum format;
         if (nrComponents == 1)
             format = GL_RED;
         else if (nrComponents == 3)
