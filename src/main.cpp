@@ -48,6 +48,9 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 
+bool blinn = false;
+bool blinnKeyPressed = false;
+
 
 // timing
 float deltaTime = 0.0f;
@@ -164,15 +167,20 @@ int main() {
 
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    //glEnable(GL_CULL_FACE);
     //skybox shader
 
 
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     Shader shaderBlending("resources/shaders/blending.vs", "resources/shaders/blending.fs");
+    Shader shaderBlinn("resources/shaders/advanced_lighting.vs", "resources/shaders/advanced_lighting.fs");
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-  //  stbi_set_flip_vertically_on_load(true);
+  // stbi_set_flip_vertically_on_load(true);
 /*
     programState = new ProgramState;
     programState->LoadFromFile("resources/program_state.txt");
@@ -248,16 +256,15 @@ int main() {
     };
 
 
-
     float planeVertices[] = {
-            // positions          // texture Coords
-            5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-            -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
-            -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+            // positions            // normals         // texcoords
+            10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+            -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+            -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
 
-            5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-            -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
-            5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+            10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+            -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+            10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
     };
 
 
@@ -278,11 +285,14 @@ int main() {
     glGenBuffers(1, &planeVBO);
     glBindVertexArray(planeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glBindVertexArray(0);
 
 
     vector<std::string> faces= {
@@ -297,7 +307,7 @@ int main() {
     unsigned int cubemapTexture = loadCubemap(faces);
 
 
-    unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/trava.png").c_str());
+    unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/grass1.jpg").c_str());
 
 
     //
@@ -365,15 +375,24 @@ int main() {
 
     // shader configuration
     // --------------------
+    shaderBlinn.use();
+    shaderBlinn.setInt("texture1", 0);
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
+
+
+
+
 
     shaderBlending.use();
     shaderBlending.setInt("texture1", 0);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+
 
     // render loop
     // -----------
@@ -418,6 +437,9 @@ int main() {
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
+        shaderBlinn.setVec3("viewPos", camera.Position);
+        shaderBlinn.setVec3("lightPos", lightPos);
+        shaderBlinn.setInt("blinn", blinn);
 
 
         // draw flower
@@ -437,16 +459,25 @@ int main() {
             leptir.Draw(shader);
         }
         // floor
+
         glBindVertexArray(planeVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+
+        glBindVertexArray(planeVAO);glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 15.0f, 0.0f));
         model = glm::scale(model, glm::vec3(100.0f, 60.0f, 100.0f));
-        //model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
+
+       // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(100, 100, 0));
         shader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        // render the loaded model
+       glBindTexture(GL_TEXTURE_2D, 0);
+             // render the loaded model
        // glm::mat4 model = glm::mat4(1.0f);
         //model = glm::translate(model,
           //                     programState->backpackPosition); // translate it down so it's at the center of the scene
@@ -482,7 +513,7 @@ int main() {
         // -------------------------------------------------------------------------------
 
 
-
+        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -518,6 +549,17 @@ void processInput(GLFWwindow *window) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
+    {
+        blinn = !blinn;
+        blinnKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
+    {
+        blinnKeyPressed = false;
+    }
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
