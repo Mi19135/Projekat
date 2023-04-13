@@ -42,7 +42,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera=(glm::vec3(0.0f,0.0f,55.0f));
+Camera camera=(glm::vec3(0.0f,0.0f,40.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -167,7 +167,7 @@ int main() {
 
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -178,6 +178,7 @@ int main() {
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     Shader shaderBlending("resources/shaders/blending.vs", "resources/shaders/blending.fs");
     Shader shaderBlinn("resources/shaders/advanced_lighting.vs", "resources/shaders/advanced_lighting.fs");
+    Shader lightCubeShader("resources/shaders/4.2.light_cube.vs", "resources/shaders/4.2.light_cube.fs");
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
   // stbi_set_flip_vertically_on_load(true);
@@ -205,7 +206,7 @@ int main() {
     // build and compile shaders
     // -------------------------
 */    Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
-    Shader shader("resources/shaders/instancing.vs", "resources/shaders/instancing.fs");
+      Shader shader("resources/shaders/instancing.vs", "resources/shaders/instancing.fs");
 
 
 
@@ -308,6 +309,12 @@ int main() {
 
 
     unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/grass1.jpg").c_str());
+    unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/grassSpecular.png").c_str());
+
+
+    shader.use();
+    shader.setInt("material.diffuse", 0);
+    shader.setInt("material.specular", 1);
 
 
     //
@@ -322,8 +329,9 @@ int main() {
     cvet.SetShaderTextureNamePrefix("material.");
 
 
-    // Model ourModel(FileSystem::getPath("resources/objects/cat/12221_Cat_v1_l3.obj"));
-    //ourModel.SetShaderTextureNamePrefix("material.");
+    Model moon(FileSystem::getPath("resources/objects/moon/moon.obj"));
+    moon.SetShaderTextureNamePrefix("material.");
+
 
     /*PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -385,8 +393,8 @@ int main() {
 
 
 
-    shaderBlending.use();
-    shaderBlending.setInt("texture1", 0);
+  //  shaderBlending.use();
+    //shaderBlending.setInt("texture1", 0);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -431,19 +439,60 @@ int main() {
         //glm::mat4 view = programState->camera.GetViewMatrix();
 
         // configure transformation matrices
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
-        glm::mat4 view = camera.GetViewMatrix();;
         shader.use();
+        shader.setVec3("viewPos", camera.Position);
+        shader.setVec3("light.position", lightPos);
+
+        shader.setVec3("light.specular", 1.0f,1.0f,1.0f);
+        shader.setVec3("light.ambient", 0.2f,0.2f,0.2f);
+        shader.setVec3("light.diffuse",0.5f,0.5f,0.5f);
+
+        shader.setFloat("material.shininess", 64.0f);
+
+
+
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+        //shader.use();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
-        shaderBlinn.setVec3("viewPos", camera.Position);
-        shaderBlinn.setVec3("lightPos", lightPos);
-        shaderBlinn.setInt("blinn", blinn);
+        shader.setInt("blinn", blinn);
+
+
+
+
+        // bind diffuse map
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        // bind specular map
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+
+        // floor
+
+
+
+
+        glBindVertexArray(planeVAO);glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 15.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(100.0f, 60.0f, 100.0f));
+
+        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(100, 100, 0));
+        shader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+       // shader.use();
+
+
 
 
         // draw flower
-        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, -20.0f, 15.0f));
         model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
@@ -458,26 +507,7 @@ int main() {
             shader.setMat4("model", modelMatrices[i]);
             leptir.Draw(shader);
         }
-        // floor
-
-        glBindVertexArray(planeVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
-
-        glBindVertexArray(planeVAO);glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 15.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(100.0f, 60.0f, 100.0f));
-
-       // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(100, 100, 0));
-        shader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-       glBindTexture(GL_TEXTURE_2D, 0);
-             // render the loaded model
+      // render the loaded model
        // glm::mat4 model = glm::mat4(1.0f);
         //model = glm::translate(model,
           //                     programState->backpackPosition); // translate it down so it's at the center of the scene
@@ -490,7 +520,13 @@ int main() {
         // if (programState->ImGuiEnabled)
          //   DrawImGui(programState);
 
-
+         //draw moon
+         model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 25.0f, 20.0f));
+        model = glm::scale(model, glm::vec3(6.0f, 6.0f, 6.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
+        shader.setMat4("model", model);
+        moon.Draw(shader);
 
         // skybox shader setup
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
