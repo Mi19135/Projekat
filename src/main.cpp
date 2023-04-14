@@ -331,7 +331,7 @@ int main() {
 
     unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/grass1.jpg").c_str());
     unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/grassSpecular.png").c_str());
-    unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/trees.png").c_str());
+    unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/p4.png").c_str());
 
 
     shader.use();
@@ -342,11 +342,11 @@ int main() {
 
     vector<glm::vec3> vegetation
             {
-                    glm::vec3(-200.5f, 50.0f, -350.5f),
+                    glm::vec3(-300.5f, 50.0f, -350.5f),
                     glm::vec3( -100.5f, 50.0f, -350.51f),
-                    glm::vec3( 0.0f, 50.0f, -350.7f),
-                    glm::vec3(100.3f, 50.0f, -350.3f),
-                    glm::vec3 (200.5f, 50.0f, -350.6f)
+                    glm::vec3( 100.0f, 50.0f, -350.7f),
+                    glm::vec3(300.3f, 50.0f, -350.3f),
+                    glm::vec3 (500.5f, 50.0f, -350.6f)
             };
     shaderBlending.use();
     shaderBlending.setInt("texture1", 0);
@@ -572,19 +572,20 @@ int main() {
        // view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
         shaderBlending.setMat4("view", view);
         shaderBlending.setMat4("projection", projection);
-
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         glBindVertexArray(transparentVAO);
         glBindTexture(GL_TEXTURE_2D, transparentTexture);
         for (unsigned int i = 0; i < vegetation.size(); i++)
         {
             model = glm::mat4(1.0f);
             model = glm::translate(model, vegetation[i]);
-            model = glm::scale(model, glm::vec3(130.0f, 130.0f, 130.0f));
+            model = glm::scale(model, glm::vec3(210.0f, 210.0f, 210.0f));
 
             shaderBlending.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }
-
+        glDisable(GL_CULL_FACE);
 
 
 
