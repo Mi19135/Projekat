@@ -476,16 +476,19 @@ int main() {
 
 
         glBindVertexArray(planeVAO);glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
+       // glBindTexture(GL_TEXTURE_2D, floorTexture);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 15.0f, 0.0f));
         model = glm::scale(model, glm::vec3(100.0f, 60.0f, 100.0f));
 
         // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(100, 100, 0));
         shader.setMat4("model", model);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindTexture(GL_TEXTURE_2D, 0);
-
+        glDisable(GL_CULL_FACE);
        // shader.use();
 
 
