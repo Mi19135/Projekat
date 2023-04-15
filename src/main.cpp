@@ -59,6 +59,7 @@ float lastFrame = 0.0f;
 
 
 
+//glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 
 /*
@@ -477,11 +478,15 @@ int main() {
         shader.setVec3("viewPos", camera.Position);
         shader.setVec3("light.position", lightPos);
 
+
+
         shader.setVec3("light.specular", 1.0f,1.0f,1.0f);
-        shader.setVec3("light.ambient", 0.2f,0.2f,0.2f);
+        shader.setVec3("light.ambient", 0.4f,0.4f,0.4f);
         shader.setVec3("light.diffuse",0.5f,0.5f,0.5f);
 
-        shader.setFloat("material.shininess", 64.0f);
+
+
+        shader.setFloat("material.shininess", 32.0f);
 
 
 
@@ -539,6 +544,7 @@ int main() {
 
 
         // draw butterflies
+
         for (unsigned int i = 0; i < amount; i++)
         {
             shader.setMat4("model", modelMatrices[i]);
@@ -565,6 +571,14 @@ int main() {
         shader.setMat4("model", model);
         moon.Draw(shader);
 
+
+        // draw flower
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -20.0f, 15.0f));
+        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
+        shader.setMat4("model", model);
+        cvet.Draw(shader);
 
 
         // vegetation

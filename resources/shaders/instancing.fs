@@ -18,9 +18,12 @@ struct Material {
 struct Light {
     vec3 position;
 
+
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
 };
 
 uniform Material material;
@@ -56,6 +59,12 @@ void main()
     //    vec3 reflectDir = reflect(-lightDir, normal);
     //       float spec = 0.0;
 
+             //specular
+
+         float constant;
+         float linear;
+         float quadratic;
+
            vec3 viewDir = normalize(viewPos - fs_in.FragPos);
               vec3 reflectDir = reflect(-lightDir, norm);
               float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
@@ -73,6 +82,7 @@ void main()
            }
            //vec3 specular = vec3(0.3) * spec; // assuming bright white light color
               vec3 specular = light.specular * spec * texture(material.specular, fs_in.TexCoords).rgb;
+
 
     FragColor = vec4(ambient + diffuse + specular, 1.0);
 }
