@@ -4,7 +4,7 @@
 #include "imgui_impl_opengl3.h"
 
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <stb_image.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -76,7 +76,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -114,7 +114,7 @@ int main() {
     Shader shaderBlinn("resources/shaders/advanced_lighting.vs", "resources/shaders/advanced_lighting.fs");
 
 
-      Shader shader("resources/shaders/instancing.vs", "resources/shaders/instancing.fs");
+    Shader shader("resources/shaders/instancing.vs", "resources/shaders/instancing.fs");
 
 
 
@@ -399,8 +399,6 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_CULL_FACE);
-       // shader.use();
-
 
 
 
@@ -515,6 +513,7 @@ void processInput(GLFWwindow *window) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
 
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
     {

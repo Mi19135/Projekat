@@ -1,11 +1,20 @@
-# Usamljeni narcis
-Prazan projekat sa pratećim bibliotekama koje koristimo na času. 
+# Racunarska grafika-projekat
 
+**Ksenija Ivanovic 135/2019**
 # Uputstvo
-1. `git clone https://github.com/matf-racunarska-grafika/project_base.git`
-2. CLion -> Open -> path/to/my/project_base
-3. Main se nalazi u src/main.cpp
-4. Cpp fajlovi idu u src folder
-5. Zaglavlja (h i hpp) fajlovi idu u include
-6. Šejderi idu u folder shaders. `Vertex shader` ima ekstenziju `.vs`, `fragment shader` ima ekstenziju `.fs`
-7. ALT+SHIFT+F10 -> project_base -> run
+1. WASD-pomeranje kamere
+2. B - Advanced lighting,Blinn-Phong model 
+
+
+# Sadrzi lekcije
+1. Obavezne lekcije (1-8 nedelja)
+2. Blending (discard)
+3. Face culling
+4. Advanced Lighting
+5. Grupa A - skybox
+
+
+# Modeli
+1. cvet: https://free3d.com/3d-model/daffodil-flower-v1--940008.html
+2. leptir: https://skfb.ly/6WXNA
+3. moon: https://skfb.ly/IRUH
