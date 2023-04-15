@@ -1,4 +1,4 @@
-# project_base
+# Usamljeni narcis
 Prazan projekat sa pratećim bibliotekama koje koristimo na času. 
 
 # Uputstvo

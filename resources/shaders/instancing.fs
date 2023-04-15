@@ -17,6 +17,10 @@ struct Material {
 
 struct Light {
     vec3 position;
+        vec3 direction;
+
+    float cutOff;
+        float outerCutOff;
 
 
 
@@ -24,6 +28,11 @@ struct Light {
     vec3 diffuse;
     vec3 specular;
 
+
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 uniform Material material;
@@ -67,21 +76,32 @@ void main()
 
            vec3 viewDir = normalize(viewPos - fs_in.FragPos);
               vec3 reflectDir = reflect(-lightDir, norm);
-              float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+              float spec = 0.0;
+              //pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 
 
            if(blinn)
            {
                vec3 halfwayDir = normalize(lightDir + viewDir);
-               spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
+               spec = pow(max(dot(norm, halfwayDir), 0.0), 64.0);
            }
            else
            {
                vec3 reflectDir = reflect(-lightDir, norm);
-               spec = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
+               spec = pow(max(dot(viewDir, reflectDir), 0.5), 8.0);
            }
-           //vec3 specular = vec3(0.3) * spec; // assuming bright white light color
-              vec3 specular = light.specular * spec * texture(material.specular, fs_in.TexCoords).rgb;
+
+              vec3 specular = light.specular * spec * texture(material.diffuse, fs_in.TexCoords).rgb;
+
+// spotlight (soft edges)
+            float theta = dot(lightDir, normalize(-light.direction));
+            float epsilon = (light.cutOff - light.outerCutOff);
+            float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+            diffuse  *= intensity;
+            specular *= intensity;
+
+
+
 
 
     FragColor = vec4(ambient + diffuse + specular, 1.0);

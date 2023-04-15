@@ -42,7 +42,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera=(glm::vec3(0.0f,0.0f,40.0f));
+Camera camera=(glm::vec3(10.0f,0.0f,0.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -477,13 +477,20 @@ int main() {
         shader.use();
         shader.setVec3("viewPos", camera.Position);
         shader.setVec3("light.position", lightPos);
+        shader.setVec3("light.direction", camera.Front);
+        shader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+        shader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
 
 
         shader.setVec3("light.specular", 1.0f,1.0f,1.0f);
-        shader.setVec3("light.ambient", 0.4f,0.4f,0.4f);
-        shader.setVec3("light.diffuse",0.5f,0.5f,0.5f);
+        shader.setVec3("light.ambient", 0.2f,0.2f,0.2f);
+        shader.setVec3("light.diffuse",0.7f,0.7f,0.7f);
 
+
+        shader.setFloat("light.constant", 1.0f);
+        shader.setFloat("light.linear", 0.3f);
+        shader.setFloat("light.quadratic", 0.1f);
 
 
         shader.setFloat("material.shininess", 32.0f);
@@ -497,11 +504,15 @@ int main() {
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
+        // world transformation
+        shader.setMat4("model", model);
+
+
         shader.setInt("blinn", blinn);
 
 
 
-
+        glEnable(GL_TEXTURE_2D);
         // bind diffuse map
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
@@ -514,7 +525,7 @@ int main() {
 
 
 
-        glBindVertexArray(planeVAO);glEnable(GL_TEXTURE_2D);
+        glBindVertexArray(planeVAO);
        // glBindTexture(GL_TEXTURE_2D, floorTexture);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 15.0f, 0.0f));
