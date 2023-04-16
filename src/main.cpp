@@ -366,13 +366,13 @@ int main() {
 
 
         shader.setVec3("light.specular", 1.0f,1.0f,1.0f);
-        shader.setVec3("light.ambient", 0.2f,0.2f,0.2f);
-        shader.setVec3("light.diffuse",0.7f,0.7f,0.7f);
+        shader.setVec3("light.ambient", 0.1f,0.1f,0.1f);
+        shader.setVec3("light.diffuse",0.6f,0.6f,0.6f);
 
 
         shader.setFloat("light.constant", 1.0f);
-        shader.setFloat("light.linear", 0.3f);
-        shader.setFloat("light.quadratic", 0.1f);
+        shader.setFloat("light.linear", 0.1f);
+        shader.setFloat("light.quadratic", 0.039f);
 
 
         shader.setFloat("material.shininess", 32.0f);
@@ -442,18 +442,18 @@ int main() {
         model = glm::mat4(1.0f);
         model = glm::translate(model, moonPosition);
         if (front) {
-            model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
+            model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
         }
         if (go_left) {
-            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0));
+            model = glm::rotate(model, glm::radians(-5.0f), glm::vec3(0.0, 1.0, 0.0));
         }
         if (go_right) {
-            model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
+            model = glm::rotate(model, glm::radians(5.0f), glm::vec3(0.0, 1.0, 0.0));
         }
 
 
         model = glm::scale(model, glm::vec3(6.0f, 6.0f, 6.0f));
-        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
+//        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
         shader.setMat4("model", model);
         shader.setVec3("lightColor", (glm::vec3(5.0f,   5.0f,  5.0f)));
 

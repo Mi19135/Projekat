@@ -78,7 +78,7 @@ void main()
            else
            {
                vec3 reflectDir = reflect(-lightDir, norm);
-               spec = pow(max(dot(viewDir, reflectDir), 0.5), 8.0);
+               spec = pow(max(dot(viewDir, reflectDir), 0.0), 4.0);
            }
 
               vec3 specular = light.specular * spec * texture(material.diffuse, fs_in.TexCoords).rgb;
