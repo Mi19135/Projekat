@@ -4,7 +4,7 @@
 # Uputstvo
 1. WASD-pomeranje kamere
 2. B - Advanced lighting,Blinn-Phong model 
-
+3. strelice(UP,DOWN,LEFT,RIGHT)-kretanje meseca
 
 # Sadrzi lekcije
 1. Obavezne lekcije (1-8 nedelja)

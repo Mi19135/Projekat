@@ -36,6 +36,12 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 unsigned int loadTexture(const char *path);
 unsigned int loadCubemap(vector<std::string> faces);
 
+void moonMovement(Camera_Movement direction);
+bool go_left=false;
+bool go_right=false;
+bool front=false;
+bool back=true;
+
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -49,6 +55,8 @@ bool firstMouse = true;
 
 bool blinn = false;
 bool blinnKeyPressed = false;
+
+glm::vec3 moonPosition(glm::vec3(0.0f, 25.0f, 20.0f));
 
 
 // timing
@@ -112,7 +120,6 @@ int main() {
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     Shader shaderBlending("resources/shaders/blending.vs", "resources/shaders/blending.fs");
     Shader shaderBlinn("resources/shaders/advanced_lighting.vs", "resources/shaders/advanced_lighting.fs");
-
 
     Shader shader("resources/shaders/instancing.vs", "resources/shaders/instancing.fs");
 
@@ -187,6 +194,9 @@ int main() {
             1.0f,  0.5f,  0.0f,  1.0f,  0.0f
     };
 
+
+
+
     //skybox - arrays & buffers
     unsigned int skyboxVAO, skyboxVBO;
     glGenVertexArrays(1, &skyboxVAO);
@@ -225,6 +235,9 @@ int main() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
 
+
+
+
     vector<std::string> faces= {
             FileSystem::getPath("resources/textures/skybox/right.jpg"),
             FileSystem::getPath("resources/textures/skybox/left.jpg"),
@@ -233,6 +246,9 @@ int main() {
             FileSystem::getPath("resources/textures/skybox/front.jpg"),
             FileSystem::getPath("resources/textures/skybox/back.jpg")
     };
+
+
+
 
     unsigned int cubemapTexture = loadCubemap(faces);
 
@@ -245,6 +261,8 @@ int main() {
     shader.setInt("material.diffuse", 0);
     shader.setInt("material.specular", 1);
 
+
+
     unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/p4.png").c_str());
 
 
@@ -256,8 +274,8 @@ int main() {
                     glm::vec3(300.3f, 50.0f, -350.3f),
                     glm::vec3 (500.5f, 50.0f, -350.6f)
             };
-    shaderBlending.use();
-    shaderBlending.setInt("texture1", 0);
+    shader.use();
+    shader.setInt("texture1", 0);
 
     //
     // load models
@@ -359,8 +377,6 @@ int main() {
 
         shader.setFloat("material.shininess", 32.0f);
 
-
-
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
@@ -372,7 +388,7 @@ int main() {
         shader.setMat4("model", model);
 
 
-        shader.setInt("blinn", blinn);
+       shader.setInt("blinn", blinn);
 
 
 
@@ -422,21 +438,29 @@ int main() {
 
 
          //draw moon
-         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 25.0f, 20.0f));
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, moonPosition);
+        if (front) {
+            model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
+        }
+        if (go_left) {
+            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0, 1.0, 0.0));
+        }
+        if (go_right) {
+            model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
+        }
+
+
         model = glm::scale(model, glm::vec3(6.0f, 6.0f, 6.0f));
         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
         shader.setMat4("model", model);
+        shader.setVec3("lightColor", (glm::vec3(5.0f,   5.0f,  5.0f)));
+
         moon.Draw(shader);
 
 
-        // draw flower
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -20.0f, 15.0f));
-        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
-        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
-        shader.setMat4("model", model);
-        cvet.Draw(shader);
+
 
 
         // vegetation
@@ -460,6 +484,9 @@ int main() {
 
 
 
+
+
+
         // skybox shader setup
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();
@@ -479,7 +506,7 @@ int main() {
         glDepthFunc(GL_LESS);
 
 
-        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
+       // std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -513,6 +540,29 @@ void processInput(GLFWwindow *window) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        front = true;
+        back = go_right = go_left = false;
+        moonMovement(FORWARD);
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        back = true;
+        front = go_left = go_right = false;
+        moonMovement(BACKWARD);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        go_left = true;
+        go_right = front = back = false;
+        moonMovement(LEFT);
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        go_right=true;
+        go_left= front= back=false;
+        moonMovement(RIGHT);
+    }
+
 
 
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
@@ -631,3 +681,16 @@ unsigned int loadCubemap(vector<std::string> faces){
     return textureID;
 }
 
+void moonMovement(Camera_Movement direction){
+    float v = 1.8f * deltaTime;
+    glm::vec3 s(1.0f, 0.0f, 1.0f);
+
+    if (direction == FORWARD)
+        moonPosition += camera.Front * v * s;
+    if (direction == BACKWARD)
+        moonPosition-= camera.Front * v * s;
+    if (direction == LEFT)
+        moonPosition -= camera.Right * v * s;
+    if (direction == RIGHT)
+        moonPosition += camera.Right * v * s;
+}

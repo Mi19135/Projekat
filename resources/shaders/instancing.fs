@@ -42,10 +42,15 @@ uniform sampler2D floorTexture;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform bool blinn;
-
+uniform sampler2D texture1;
 
 void main()
 {
+       vec4 color = vec4(texture(texture1, fs_in.TexCoords));
+
+       if(color.a < 0.5)
+       discard;
+
        // ambient
            vec3 ambient = light.ambient * texture(material.diffuse, fs_in.TexCoords).rgb;
 
@@ -54,21 +59,6 @@ void main()
            vec3 lightDir = normalize(light.position - fs_in.FragPos);
            float diff = max(dot(norm, lightDir), 0.0);
            vec3 diffuse = light.diffuse * diff * texture(material.diffuse, fs_in.TexCoords).rgb;
-
-   // vec3 color = texture(texture_diffuse1, fs_in.TexCoords).rgb;
-        // ambient
-    //    vec3 ambient = 0.4 * color;
-        // diffuse
-    //    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    //    vec3 normal = normalize(fs_in.Normal);
-    //    float diff = max(dot(lightDir, normal), 0.0);
-    //    vec3 diffuse = diff * color;
-    //    //specular
-    //    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
-    //    vec3 reflectDir = reflect(-lightDir, normal);
-    //       float spec = 0.0;
-
-             //specular
 
          float constant;
          float linear;
@@ -99,10 +89,6 @@ void main()
             float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
             diffuse  *= intensity;
             specular *= intensity;
-
-
-
-
 
     FragColor = vec4(ambient + diffuse + specular, 1.0);
 }
