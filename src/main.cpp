@@ -121,7 +121,7 @@ int main() {
     Shader shaderBlending("resources/shaders/blending.vs", "resources/shaders/blending.fs");
     Shader shaderBlinn("resources/shaders/advanced_lighting.vs", "resources/shaders/advanced_lighting.fs");
 
-    Shader shader("resources/shaders/instancing.vs", "resources/shaders/instancing.fs");
+    Shader shader("resources/shaders/mainshader.vs", "resources/shaders/mainshader.fs");
 
 
 
