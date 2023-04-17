@@ -56,7 +56,7 @@ bool firstMouse = true;
 bool blinn = false;
 bool blinnKeyPressed = false;
 
-glm::vec3 moonPosition(glm::vec3(0.0f, 25.0f, 20.0f));
+glm::vec3 moonPosition(glm::vec3(10.0f, 25.0f, 20.0f));
 
 
 // timing
@@ -66,7 +66,7 @@ float lastFrame = 0.0f;
 
 
 
-glm::vec3 lightPos(5.2f, 0.0f, -10.0f);
+glm::vec3 lightPos(0.2f, 0.0f, 0.0f);
 
 
 int main() {
@@ -393,6 +393,11 @@ int main() {
 
 
         glEnable(GL_TEXTURE_2D);
+
+
+        // floor
+
+        glBindVertexArray(planeVAO);
         // bind diffuse map
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
@@ -400,9 +405,7 @@ int main() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
-        // floor
 
-        glBindVertexArray(planeVAO);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 15.0f, 0.0f));
         model = glm::scale(model, glm::vec3(100.0f, 60.0f, 100.0f));
@@ -420,7 +423,7 @@ int main() {
 
         // draw flower
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -20.0f, 15.0f));
+        model = glm::translate(model, glm::vec3(-5.0f, -15.0f, 15.0f));
         model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(-3.5, 1, 1));
         shader.setMat4("model", model);
@@ -506,7 +509,7 @@ int main() {
         glDepthFunc(GL_LESS);
 
 
-       // std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
+       std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -533,13 +536,13 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, 0.15f);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, 0.15f);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, 0.15f);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.ProcessKeyboard(RIGHT, 0.15f);
 
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
